@@ -56,6 +56,20 @@ INSERT INTO credit_cards (user_id, card_number, expiry) VALUES
 (2, '4111111111111111', '12/27'),
 (3, '5500000000000004', '09/26');
 
+INSERT INTO products (name, description, price) VALUES
+('Mu luoi trai', 'Mu chong nang basic', 120000),
+('Kinh ram', 'Kinh chong UV', 250000),
+('Đong ho the thao', 'Dong ho chong nuoc', 650000),
+('Ao khoac gio', 'Ao khoac nhe chong gio', 380000),
+('Quan jean', 'Quan jean nam form slimfit', 420000);
+
+INSERT INTO orders (user_id, total) VALUES
+(2, 300000),
+(3, 850000);
+
+INSERT INTO order_items (order_id, product_id, quantity) VALUES
+(1, 1, 2),
+(2, 2, 1);
 -- User riêng cho ứng dụng ở bản secure, quyền hạn chế (không có quyền DROP, GRANT...)
 CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY 'AppPass123!';
 GRANT SELECT, INSERT, UPDATE ON shop_db.* TO 'app_user'@'%';
