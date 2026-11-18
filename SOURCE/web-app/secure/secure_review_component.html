@@ -1,0 +1,55 @@
+<!-- 
+    SOURCE/web-app/secure/secure_review_component.html
+    Thành viên 2: Module Bình luận An toàn (Secure Mode)
+    Áp dụng 2 lớp phòng vệ:
+    1. DOMPurify.sanitize() làm sạch thẻ HTML độc hại
+    2. Gán dữ liệu bằng textContent cho các trường văn bản
+-->
+<div class="review-box secure-mode" style="background:#f0fdf4; border:1px solid #86efac; padding:20px; border-radius:8px;">
+    <h3 style="color:#166534;">🛡️ Bình Luận Đánh Giá (Phiên Bản Đã Vá Lỗi)</h3>
+    <p style="color:#15803d; font-size:13px;">Áp dụng: Context-aware Output Encoding, textContent DOM Sink, và DOMPurify Sanitizer.</p>
+    
+    <form id="secure-review-form">
+        <div style="margin-bottom:10px;">
+            <input type="text" id="sec-user" placeholder="Họ và tên..." style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <textarea id="sec-comment" placeholder="Nhận xét sản phẩm (Thử chèn lại payload XSS)..." style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:4px; height:80px;"></textarea>
+        </div>
+        <button type="button" id="sec-submit-btn" style="background:#16a34a; color:white; padding:8px 16px; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">Gửi Đánh Giá An Toàn</button>
+    </form>
+
+    <div id="sec-reviews-list" style="margin-top:20px;">
+        <!-- Danh sách bình luận an toàn -->
+    </div>
+</div>
+
+<script src="secure_encoder.js"></script>
+<script src="dompurify.min.js"></script>
+<script>
+function submitSecureReview() {
+    var rawUser = document.getElementById("sec-user").value;
+    var rawComment = document.getElementById("sec-comment").value;
+
+    var container = document.getElementById("sec-reviews-list");
+    var div = document.createElement("div");
+    div.style.cssText = "background:white; border:1px solid #e2e8f0; padding:12px; margin-bottom:10px; border-radius:6px;";
+
+    // 1. Dùng textContent cho tên người dùng (Không thể chèn HTML)
+    var header = document.createElement("b");
+    header.textContent = rawUser + ": ";
+    div.appendChild(header);
+
+    // 2. Với comment: Dùng DOMPurify allowlist để làm sạch trước khi render
+    var cleanComment = DOMPurify.sanitize(rawComment);
+    var bodySpan = document.createElement("span");
+    bodySpan.innerHTML = cleanComment;
+
+    div.appendChild(bodySpan);
+    container.prepend(div);
+
+    document.getElementById("sec-comment").value = "";
+}
+
+document.getElementById("sec-submit-btn").addEventListener("click", submitSecureReview);
+</script>

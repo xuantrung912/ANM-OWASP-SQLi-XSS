@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Sản Phẩm & Đánh Giá - VulnShop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="top-bar">
+            <div class="container top-bar-flex">
+                <span>🛡️ VulnShop Labs - Module Phân Hệ Đánh Giá & Bình Luận</span>
+                <div class="top-links">
+                    <a href="index.html">Trang chủ</a>
+                    <a href="profile.html">Hồ sơ cá nhân</a>
+                    <a href="cart.html">Giỏ hàng</a>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar">
+            <div class="container nav-flex">
+                <a href="index.html" class="logo">🛒 <span>VulnShop</span></a>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Tìm kiếm sản phẩm...">
+                    <button id="search-btn">Tìm kiếm</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container main-container">
+        <!-- Product Overview -->
+        <div class="product-detail-layout">
+            <div class="detail-image">
+                <img id="prod-img" src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600" alt="Sản phẩm">
+            </div>
+            <div class="detail-info">
+                <span class="category" id="prod-cat">Laptop Cao Cấp</span>
+                <h1 id="prod-name">MacBook Pro 16 M3 Max</h1>
+                <div class="rating-stars">⭐⭐⭐⭐⭐ (18 đánh giá từ khách hàng)</div>
+                <div class="price" id="prod-price">79.990.000 đ</div>
+                <p class="description" id="prod-desc">
+                    Mạnh mẽ đột phá với vi xử lý Apple M3 Max, bộ nhớ thống nhất 36GB, màn hình Liquid Retina XDR 120Hz siêu sắc nét và thời lượng pin vượt trội lên tới 22 giờ liên tục.
+                </p>
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="addToCart(1, 'MacBook Pro 16 M3 Max', 79990000)">🛒 Thêm Vào Giỏ Hàng</button>
+                    <a href="cart.html" class="btn-secondary">Mua Ngay</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews & Rating Section (Bề mặt kiểm thử Stored XSS) -->
+        <section class="reviews-section">
+            <div class="section-title">
+                <h2>Khách Hàng Đánh Giá & Nhận Xét</h2>
+                <p>Khu vực nhập liệu cộng đồng - Bề mặt kiểm thử Stored XSS (CWE-79)</p>
+            </div>
+
+            <div class="reviews-wrapper">
+                <!-- Review Form -->
+                <div class="review-form-card">
+                    <h3>Gửi nhận xét của bạn</h3>
+                    <form id="review-form" onsubmit="handleReviewSubmit(event)">
+                        <div class="form-group">
+                            <label for="review-author">Họ và tên hoặc Biệt danh:</label>
+                            <input type="text" id="review-author" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="review-rating">Đánh giá số sao:</label>
+                            <select id="review-rating" class="form-control">
+                                <option value="5">⭐⭐⭐⭐⭐ (5 sao - Xuất sắc)</option>
+                                <option value="4">⭐⭐⭐⭐ (4 sao - Tốt)</option>
+                                <option value="3">⭐⭐⭐ (3 sao - Bình thường)</option>
+                                <option value="2">⭐⭐ (2 sao - Tạm được)</option>
+                                <option value="1">⭐ (1 sao - Kém)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="review-comment">Nội dung nhận xét:</label>
+                            <textarea id="review-comment" class="form-control" rows="4" placeholder="Nhập cảm nhận về sản phẩm... Thử nghiệm Stored XSS payload tại đây!" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">Gửi Bình Luận</button>
+                    </form>
+                </div>
+
+                <!-- Existing Reviews List -->
+                <div class="review-list-card">
+                    <h3>Các bình luận đã đăng (<span id="review-count">2</span>)</h3>
+                    <div id="reviews-container">
+                        <!-- Bình luận mẫu 1 -->
+                        <div class="review-item">
+                            <div class="review-header">
+                                <span class="author-name">Trần Đình Bảo</span>
+                                <span class="review-stars">⭐⭐⭐⭐⭐</span>
+                                <span class="review-date">02/11/2026</span>
+                            </div>
+                            <div class="review-body">
+                                Máy dùng cực kỳ mượt mà, render video 4K nhanh gấp 3 lần đời M1 trước đây. Đóng gói rất kỹ càng!
+                            </div>
+                        </div>
+
+                        <!-- Bình luận mẫu 2 -->
+                        <div class="review-item">
+                            <div class="review-header">
+                                <span class="author-name">Lê Hoàng Yến</span>
+                                <span class="review-stars">⭐⭐⭐⭐</span>
+                                <span class="review-date">04/11/2026</span>
+                            </div>
+                            <div class="review-body">
+                                Màn hình hiển thị quá đẹp, pin trâu cả ngày không cần sạc. Giá hơi cao nhưng rất đáng tiền.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>© 2026 VulnShop TMĐT - Phân hệ Frontend & XSS do TV2 thực hiện.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

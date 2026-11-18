@@ -1,0 +1,55 @@
+<!-- 
+    SOURCE/web-app/secure/secure_profile.html
+    Thành viên 2: Hồ Sơ Cá Nhân Đã Vá Lỗi (Secure Profile)
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hồ Sơ An Toàn - Secure Profile</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
+        .card { background: white; padding: 25px; border-radius: 8px; border: 1px solid #86efac; max-width: 600px; margin: auto; }
+        .btn { background: #16a34a; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="color: #166534;">🛡️ Hồ Sơ Người Dùng (Chế Độ Đã Khắc Phục)</h2>
+        <div id="welcome-banner" style="padding: 12px; background: #f0fdf4; border-left: 4px solid #22c55e; margin: 15px 0;">
+            Xin chào, <span id="user-display-name">Khách hàng an toàn</span>
+        </div>
+
+        <form id="edit-profile-form">
+            <div class="input-group">
+                <label>Tên hiển thị mới:</label>
+                <input type="text" id="new-display-name" placeholder="Thử nhập: <script>alert('Test')</script>">
+            </div>
+            <button type="button" class="btn" onclick="updateProfileSecure()">Lưu Tên An Toàn</button>
+        </form>
+    </div>
+
+    <script>
+    function updateProfileSecure() {
+        var inputName = document.getElementById("new-display-name").value;
+        var targetSpan = document.getElementById("user-display-name");
+        
+        // [PHÒNG THỦ TRIỆT ĐỂ]: Sử dụng textContent thay thế cho innerHTML
+        targetSpan.textContent = inputName;
+        
+        localStorage.setItem("sec_profile_name", inputName);
+    }
+
+    window.onload = function() {
+        var saved = localStorage.getItem("sec_profile_name");
+        if (saved) {
+            // Tải lại bằng textContent
+            document.getElementById("user-display-name").textContent = saved;
+        }
+    };
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Cá Nhân & Quản Lý Thông Tin - VulnShop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="container nav-flex">
+                <a href="index.html" class="logo">🛒 <span>VulnShop</span></a>
+                <div class="nav-actions">
+                    <a href="index.html" class="btn-secondary">Trang Chủ</a>
+                    <a href="cart.html" class="btn-secondary">Giỏ Hàng</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container main-container" style="max-width: 720px; margin-top: 30px;">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="avatar-circle">👤</div>
+                <div>
+                    <!-- Tên hiển thị là bề mặt tấn công XSS (Stored/Reflected XSS trong Profile) -->
+                    <h2 id="display-name-heading">Xin chào, <span id="current-display-name">Nguyễn Văn A</span></h2>
+                    <p class="role-badge">Tài khoản Khách hàng (customer)</p>
+                </div>
+            </div>
+
+            <div class="profile-tabs">
+                <button class="tab-btn active">Thông Tin Chung</button>
+            </div>
+
+            <form id="profile-form" onsubmit="handleProfileUpdate(event)">
+                <div class="form-group">
+                    <label for="display-name-input">Tên hiển thị công khai (Display Name):</label>
+                    <input type="text" id="display-name-input" class="form-control" value="Nguyễn Văn A" placeholder="Nhập tên mới hoặc thử nghiệm payload XSS..." required>
+                    <small class="form-text">Bề mặt kiểm thử: Tại bản Vulnerable, tên hiển thị được render trực tiếp qua innerHTML mà không mã hóa.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email-input">Địa chỉ Email:</label>
+                    <input type="email" id="email-input" class="form-control" value="nguyenvana@gmail.com" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone-input">Số điện thoại liên lạc:</label>
+                    <input type="text" id="phone-input" class="form-control" value="0901234567">
+                </div>
+
+                <div class="form-group">
+                    <label for="address-input">Địa chỉ giao hàng mặc định:</label>
+                    <textarea id="address-input" class="form-control" rows="2">123 Nguyễn Văn Cừ, Quận 5, TP. Hồ Chí Minh</textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" style="width: auto; padding: 10px 25px;">Lưu Thay Đổi</button>
+                    <span id="update-status" style="margin-left: 15px; font-weight: 600; color: #16a34a;"></span>
+                </div>
+            </form>
+
+            <div class="demo-hints" style="margin-top: 25px;">
+                <h4>🧪 Kịch bản thử nghiệm XSS Profile:</h4>
+                <p>Nhập vào ô Tên hiển thị: <code>&lt;script&gt;alert('XSS_Profile_Hacked')&lt;/script&gt;</code> hoặc <code>&lt;img src=x onerror=alert('Profile_DOM_XSS')&gt;</code></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>© 2026 VulnShop - Module Quản lý Hồ sơ & Profile do TV2 xây dựng.</p>
+        </div>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>

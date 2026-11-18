@@ -1,0 +1,64 @@
+<!-- 
+    SOURCE/web-app/vulnerable/vulnerable_profile.html
+    Thành viên 2: Module Giao diện Hồ sơ Người dùng (Profile - Vulnerable Mode)
+    Mô tả: Chức năng sửa đổi Tên hiển thị (Display Name) in trực tiếp chuỗi người dùng nhập
+    vào tiêu đề chào mừng thông qua innerHTML không mã hóa.
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chỉnh Sửa Hồ Sơ - Bản Dễ Bị Tấn Công (Vulnerable Profile)</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
+        .card { background: white; padding: 25px; border-radius: 8px; border: 1px solid #cbd5e1; max-width: 600px; margin: auto; }
+        .btn { background: #ef4444; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 style="color: #b91c1c;">Cập Nhật Thông Tin Hồ Sơ (Vulnerable Profile)</h2>
+        <div id="welcome-banner" style="padding: 12px; background: #fee2e2; border-left: 4px solid #ef4444; margin: 15px 0;">
+            <!-- Điểm inject XSS: innerHTML không làm sạch dữ liệu -->
+            Xin chào, <span id="user-display-name">Khách hàng mẫu</span>
+        </div>
+
+        <form id="edit-profile-form">
+            <div class="input-group">
+                <label>Tên hiển thị mới:</label>
+                <input type="text" id="new-display-name" placeholder="Thử nhập: <script>alert('Profile_XSS')</script>">
+            </div>
+            <div class="input-group">
+                <label>Email cá nhân:</label>
+                <input type="email" value="customer@vulnshop.local" readonly>
+            </div>
+            <button type="button" class="btn" onclick="updateProfileVuln()">Cập Nhật Tên Hiển Thị</button>
+        </form>
+    </div>
+
+    <script>
+    function updateProfileVuln() {
+        var inputName = document.getElementById("new-display-name").value;
+        var targetSpan = document.getElementById("user-display-name");
+        
+        // [LỖ HỔNG XSS]: Gán trực tiếp chuỗi vào innerHTML
+        targetSpan.innerHTML = inputName;
+        
+        // Lưu vào LocalStorage mô phỏng Stored Profile XSS
+        localStorage.setItem("vuln_profile_name", inputName);
+    }
+
+    // Tự động load dữ liệu đã lưu
+    window.onload = function() {
+        var saved = localStorage.getItem("vuln_profile_name");
+        if (saved) {
+            // [LỖ HỔNG XSS KHI TẢI LẠI TRANG]
+            document.getElementById("user-display-name").innerHTML = saved;
+        }
+    };
+    </script>
+</body>
+</html>

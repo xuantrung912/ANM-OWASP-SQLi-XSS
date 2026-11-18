@@ -1,0 +1,41 @@
+<!-- 
+    SOURCE/web-app/vulnerable/vulnerable_order_track.html
+    Thành viên 2: Điểm phát sinh DOM-based XSS (CWE-79) qua location.hash
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tra Cứu Vận Đơn - DOM XSS Vulnerable</title>
+    <style>
+        body { font-family: sans-serif; padding: 25px; background: #f8fafc; }
+        .card { background: white; padding: 25px; border-radius: 8px; max-width: 600px; margin: auto; border: 1px solid #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Tra Cứu Trạng Thái Đơn Hàng (DOM Sink)</h2>
+        <p>Hệ thống tự động đồng bộ mã định danh từ URL Hash.</p>
+        
+        <div id="status-panel" style="background: #fee2e2; border: 1px solid #f87171; padding: 15px; border-radius: 6px; margin-top: 15px;">
+            <div id="hash-target">Đang tải trạng thái...</div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        // Source: window.location.hash
+        var rawHash = window.location.hash.substring(1);
+        var target = document.getElementById("hash-target");
+
+        if (rawHash) {
+            var decoded = decodeURIComponent(rawHash);
+            // Sink: innerHTML (Thực thi DOM-based XSS mà không cần tương tác với server)
+            target.innerHTML = "Thông tin vận chuyển cho đơn: " + decoded;
+        } else {
+            target.textContent = "Không tìm thấy mã bưu gửi trong hash.";
+        }
+    })();
+    </script>
+</body>
+</html>

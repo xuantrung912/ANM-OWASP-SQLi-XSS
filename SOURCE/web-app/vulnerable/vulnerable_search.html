@@ -1,0 +1,37 @@
+<!-- 
+    SOURCE/web-app/vulnerable/vulnerable_search.html
+    Thành viên 2: Điểm phát sinh Reflected XSS trong trang Tìm Kiếm
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tìm Kiếm Sản Phẩm (Bản Dễ Bị Tấn Công - Reflected XSS)</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
+        .box { background: white; padding: 20px; border-radius: 8px; max-width: 650px; margin: auto; border: 1px solid #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Kết Quả Tìm Kiếm Sản Phẩm</h2>
+        <div id="search-feedback" style="margin: 20px 0; font-size: 16px;">
+            <!-- [ĐIỂM NGUY HIỂM]: Render từ URL parameter q vào DOM -->
+        </div>
+    </div>
+
+    <script>
+        // Lấy tham số q từ URL
+        var params = new URLSearchParams(window.location.search);
+        var q = params.get('q');
+        var feedback = document.getElementById('search-feedback');
+
+        if (q) {
+            // [LỖ HỔNG REFLECTED XSS]: In thẳng dữ liệu người dùng vào innerHTML
+            feedback.innerHTML = "Từ khóa bạn đã tìm: <span style='color:red;'>" + q + "</span>";
+        } else {
+            feedback.textContent = "Vui lòng nhập từ khóa tìm kiếm.";
+        }
+    </script>
+</body>
+</html>

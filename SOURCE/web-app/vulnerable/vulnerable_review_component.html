@@ -1,0 +1,34 @@
+<!-- 
+    SOURCE/web-app/vulnerable/vulnerable_review_component.html
+    Thành viên 2: Module Giao diện Bình luận & Đánh giá (Phiên bản Lỗ hổng - Vulnerable Mode)
+    Mô tả: Form và khu vực hiển thị bình luận KHÔNG qua xử lý mã hóa đầu ra (Context-aware Output Encoding),
+    dẫn đến lỗ hổng Stored XSS (CWE-79) khi dữ liệu độc hại được lưu vào CSDL và kết xuất ra HTML.
+-->
+<div class="review-box vulnerable-mode">
+    <h3>Bình Luận Đánh Giá (Phiên Bản Có Lỗ Hổng)</h3>
+    <p class="warning-text">⚠️ Cảnh báo: Mã nguồn bên dưới render bình luận trực tiếp vào DOM bằng innerHTML không qua lọc.</p>
+    
+    <form id="vuln-review-form">
+        <input type="text" id="vuln-user" placeholder="Tên người đánh giá (vd: Attacker)">
+        <textarea id="vuln-comment" placeholder="Nhập bình luận... Thử chèn: <script>alert(document.cookie)</script> hoặc <img src=x onerror=alert('StoredXSS')>"></textarea>
+        <button type="button" onclick="submitVulnReview()">Gửi Đánh Giá</button>
+    </form>
+
+    <div id="vuln-reviews-list">
+        <!-- Render từ CSDL hoặc mảng bình luận -->
+    </div>
+</div>
+
+<script>
+function submitVulnReview() {
+    var user = document.getElementById("vuln-user").value;
+    var comment = document.getElementById("vuln-comment").value;
+    
+    var div = document.createElement("div");
+    div.className = "single-review";
+    // [LỖ HỔNG BẢN VULNERABLE]: Sử dụng innerHTML nối trực tiếp dữ liệu người dùng
+    div.innerHTML = "<b>" + user + "</b>: " + comment; 
+    
+    document.getElementById("vuln-reviews-list").appendChild(div);
+}
+</script>

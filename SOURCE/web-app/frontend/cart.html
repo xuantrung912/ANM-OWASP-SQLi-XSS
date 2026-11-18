@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ Hàng & Thanh Toán - VulnShop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="top-bar">
+            <div class="container top-bar-flex">
+                <span>🛡️ VulnShop TMĐT - Module Giỏ Hàng & Đặt Hàng</span>
+                <div class="top-links">
+                    <a href="index.html">Trang chủ</a>
+                    <a href="profile.html">Hồ sơ cá nhân</a>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar">
+            <div class="container nav-flex">
+                <a href="index.html" class="logo">🛒 <span>VulnShop</span></a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container main-container">
+        <h2>Giỏ Hàng Của Bạn</h2>
+        <div class="cart-layout">
+            <div class="cart-items-card">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Đơn giá</th>
+                            <th>Số lượng</th>
+                            <th>Thành tiền</th>
+                            <th>Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cart-table-body">
+                        <!-- Danh sách sản phẩm được render động từ localStorage trong app.js -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="cart-summary-card">
+                <h3>Tóm Tắt Đơn Hàng</h3>
+                <div class="summary-line">
+                    <span>Tạm tính:</span>
+                    <span id="subtotal">0 đ</span>
+                </div>
+                <div class="summary-line">
+                    <span>Phí vận chuyển:</span>
+                    <span>Miễn phí</span>
+                </div>
+                <div class="summary-line total-line">
+                    <span>Tổng cộng:</span>
+                    <span id="grand-total">0 đ</span>
+                </div>
+                <button id="checkout-btn" class="btn-primary" style="width:100%; margin-top:15px;">Tiến Hành Thanh Toán</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>© 2026 VulnShop - Giao diện giỏ hàng được hoàn thiện bởi TV2.</p>
+        </div>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>

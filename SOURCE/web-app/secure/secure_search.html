@@ -1,0 +1,39 @@
+<!-- 
+    SOURCE/web-app/secure/secure_search.html
+    Thành viên 2: Kết quả tìm kiếm đã phòng thủ Reflected XSS
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Tìm Kiếm An Toàn (Secure Search)</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
+        .box { background: white; padding: 25px; border-radius: 8px; max-width: 650px; margin: auto; border: 1px solid #86efac; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="color:#166534;">🛡️ Kết Quả Tìm Kiếm (Đã Phòng Thủ Reflected XSS)</h2>
+        <div id="search-feedback" style="margin: 20px 0; font-size: 16px; background:#f0fdf4; padding:12px; border-radius:6px;">
+        </div>
+    </div>
+
+    <script src="secure_encoder.js"></script>
+    <script>
+        var params = new URLSearchParams(window.location.search);
+        var q = params.get('q');
+        var feedback = document.getElementById('search-feedback');
+
+        if (q) {
+            // [GIẢI PHÁP 1]: Sử dụng textContent
+            feedback.textContent = "Từ khóa bạn đã tìm: " + q;
+            
+            // [GIẢI PHÁP 2]: Nếu bắt buộc phải dùng HTML, phải qua encodeForHTML()
+            // feedback.innerHTML = "Từ khóa bạn đã tìm: <b>" + SecureEncoder.encodeForHTML(q) + "</b>";
+        } else {
+            feedback.textContent = "Vui lòng nhập từ khóa tìm kiếm.";
+        }
+    </script>
+</body>
+</html>

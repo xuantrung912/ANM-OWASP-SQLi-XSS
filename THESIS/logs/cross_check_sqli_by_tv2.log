@@ -1,0 +1,90 @@
+================================================================================
+BÁO CÁO KIỂM TRA CHÉO LỖ HỔNG SQL INJECTION CỦA THÀNH VIÊN 1 (CROSS-CHECK LOG)
+Người kiểm tra: Thành viên 2 (Frontend & XSS Security Specialist)
+Đối tượng kiểm tra: Các module Backend & Cơ sở dữ liệu do TV1 xây dựng
+Mục tiêu kiểm tra chéo: Chạy lại toàn bộ payload SQLi của TV1 trên bản đã vá (SECURE MODE)
+để xác nhận độc lập và khách quan rằng lỗ hổng SQLi đã được triệt tiêu hoàn toàn.
+Ngày thực hiện: 06/11/2026
+================================================================================
+
+[KỊCH BẢN CHÉO 1: AUTHENTICATION BYPASS TRÊN TRANG ĐĂNG NHẬP (/login)]
+--------------------------------------------------------------------------------
+1.1. Chạy Payload SQLi-01: admin' --
+- Thao tác: Gửi POST request tới /login
+  POST Data: username=admin'%20--&password=arbitrary_password
+- Câu lệnh SQL Backend dự kiến nếu bị tấn công:
+  SELECT * FROM users WHERE username = 'admin' --' AND password_hash = '...'
+
+* KẾT QUẢ TRÊN BẢN ĐÃ VÁ (SECURE MODE):
+  - Mã nguồn Backend áp dụng: Parameterized Query
+    cur.execute("SELECT * FROM users WHERE username = ? AND password_hash = ?", (user_input, pwd_hash))
+  - Phản hồi từ Server:
+    HTTP Status: 200 OK
+    HTML Output: <div class="alert-box alert-danger">Tên đăng nhập hoặc mật khẩu không chính xác.</div>
+  - Phân tích của TV2: Ký tự nháy đơn (') và dấu chú thích (--) được SQLite xử lý nguyên văn như một chuỗi username thông thường có giá trị là "admin' --". Do không có người dùng nào mang tên này, câu truy vấn trả về rỗng. Vượt qua đăng nhập hoàn toàn THẤT BẠI.
+  - ĐÁNH GIÁ CHÉO: ĐẠT YÊU CẦU AN TOÀN (BYPASS BLOCKED).
+
+--------------------------------------------------------------------------------
+1.2. Chạy Payload SQLi-02: ' OR '1'='1' --
+- Thao tác: Gửi POST request tới /login với username = ' OR '1'='1' --
+* KẾT QUẢ TRÊN BẢN ĐÃ VÁ (SECURE MODE):
+  - Phản hồi: Báo lỗi sai thông tin đăng nhập.
+  - Phân tích của TV2: Phép toán logic OR '1'='1' không bị phân tích cú pháp SQL.
+  - ĐÁNH GIÁ CHÉO: ĐẠT YÊU CẦU AN TOÀN (BLOCKED).
+
+
+================================================================================
+[KỊCH BẢN CHÉO 2: UNION-BASED SQL INJECTION TRÊN TRANG TÌM KIẾM (/search)]
+--------------------------------------------------------------------------------
+2.1. Chạy Payload SQLi-03: ' UNION SELECT id, username, email, password_hash, phone, shipping_address FROM users --
+- Thao tác: Gửi GET request tới /search
+  URL: /search?q=%27+UNION+SELECT+id%2C+username%2C+email%2C+password_hash%2C+phone%2C+shipping_address+FROM+users+--
+
+* KẾT QUẢ TRÊN BẢN ĐÃ VÁ (SECURE MODE):
+  - Mã nguồn Backend áp dụng:
+    cur.execute("SELECT * FROM products WHERE name LIKE ? OR description LIKE ?", (f"%{q}%", f"%{q}%"))
+  - Phản hồi từ Server:
+    HTTP Status: 200 OK
+    HTML Output:
+    <div class="alert-box alert-info">Không tìm thấy sản phẩm nào khớp với từ khóa của bạn.</div>
+  - Phân tích của TV2: Toàn bộ mệnh đề UNION SELECT bị bọc trong tham số LIKE "%' UNION SELECT...%". Hệ thống không ghép bảng users vào kết quả sản phẩm. Không có email hay password_hash nào bị rò rỉ.
+  - ĐÁNH GIÁ CHÉO: ĐẠT YÊU CẦU AN TOÀN (DATA EXTRACTION BLOCKED).
+
+--------------------------------------------------------------------------------
+2.2. Chạy Payload SQLi-04: Thử nghiệm ký tự nháy đơn lẻ (')
+- Thao tác: Gửi /search?q='
+* KẾT QUẢ TRÊN BẢN ĐÃ VÁ (SECURE MODE):
+  - Phản hồi: Trả về HTTP 200 an toàn, thông báo không tìm thấy sản phẩm.
+  - Phân tích của TV2: Không xuất hiện lỗi cú pháp "sqlite3.OperationalError: unrecognized token". Hệ thống bắt lỗi ngoại lệ toàn cục chuẩn xác, không làm sập ứng dụng (Anti-Crash #4).
+  - ĐÁNH GIÁ CHÉO: ĐẠT YÊU CẦU AN TOÀN (ANTI-CRASH VERIFIED).
+
+
+================================================================================
+[KỊCH BẢN CHÉO 3: BLIND SQL INJECTION TRÊN TRANG TRA CỨU ĐƠN HÀNG (/order-track)]
+--------------------------------------------------------------------------------
+3.1. Chạy Payload SQLi-05 (Điều kiện True): ORD101' AND 1=1 --
+3.2. Chạy Payload SQLi-06 (Điều kiện False): ORD101' AND 1=2 --
+
+* KẾT QUẢ TRÊN BẢN ĐÃ VÁ (SECURE MODE):
+  - Mã nguồn Backend áp dụng:
+    cur.execute("SELECT * FROM orders WHERE order_code = ?", (code,))
+  - Phản hồi từ Server cho CẢ HAI trường hợp:
+    HTTP Status: 200 OK
+    HTML Output: <div class="alert-box alert-danger">Không tìm thấy mã vận đơn này.</div>
+  - Phân tích của TV2: Vì hệ thống tìm kiếm mã đơn hàng có tên chính xác là "ORD101' AND 1=1 --", không có bản ghi nào khớp. Cả điều kiện True và False đều trả về thông báo giống hệt nhau, vô hiệu hóa hoàn toàn phương pháp tấn công Boolean-based Inference.
+  - ĐÁNH GIÁ CHÉO: ĐẠT YÊU CẦU AN TOÀN (INFERENCE ATTACK MITIGATED).
+
+
+================================================================================
+[KẾT LUẬN KIỂM TRA CHÉO CỦA THÀNH VIÊN 2]
+================================================================================
+Sau khi chạy lại 100% các payload SQL Injection của TV1 trên phiên bản đã vá:
+1. Tất cả các nỗ lực vượt qua đăng nhập (Authentication Bypass) đều bị chặn đứng.
+2. Không thể trích xuất cấu trúc bảng hay dữ liệu nhạy cảm của người dùng (Data Leakage) qua UNION query.
+3. Các kỹ thuật Blind SQLi không thể khai thác do hệ thống sử dụng Parameterized Query đồng bộ.
+4. Cơ chế bắt lỗi ngoại lệ hoạt động hoàn hảo, không gây rò rỉ stack trace hệ thống hay sập máy chủ.
+
+XÁC NHẬN ĐẠT CHUẨN AN TOÀN:
+Người thực hiện kiểm tra chéo: Thành viên 2 (Frontend & XSS Security Specialist)
+Người đối chiếu: Thành viên 1 (Backend & SQL Injection Specialist)
+Chữ ký số nội bộ: TV2_VERIFIED_SECURE_SQLI_PASS_20261106

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VulnShop - Sàn Thương Mại Điện Tử Công Nghệ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header class="header">
+        <div class="top-bar">
+            <div class="container top-bar-flex">
+                <span>🛡️ Hệ thống kiểm thử an toàn thông tin & nghiên cứu OWASP Top 10</span>
+                <div class="top-links">
+                    <a href="login.html">Đăng nhập</a>
+                    <a href="profile.html">Hồ sơ cá nhân</a>
+                    <a href="order_track.html">Tra cứu đơn hàng</a>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar">
+            <div class="container nav-flex">
+                <a href="index.html" class="logo">🛒 <span>VulnShop</span></a>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Tìm kiếm iPhone, MacBook, phụ kiện...">
+                    <button id="search-btn">Tìm kiếm</button>
+                </div>
+                <div class="nav-actions">
+                    <a href="cart.html" class="cart-btn">
+                        🛒 Giỏ hàng (<span id="cart-count">0</span>)
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="hero-section">
+        <div class="container hero-content">
+            <h1>Siêu Sale Công Nghệ 2026</h1>
+            <p>Trải nghiệm mua sắm thiết bị chính hãng với ưu đãi giảm giá lên tới 40%</p>
+            <a href="#product-grid" class="btn-primary">Khám phá ngay</a>
+        </div>
+    </section>
+
+    <!-- Main Products -->
+    <main class="container main-container">
+        <div class="section-header">
+            <h2>Sản phẩm nổi bật</h2>
+            <div class="filter-tabs">
+                <button class="filter-btn active" data-cat="all">Tất cả</button>
+                <button class="filter-btn" data-cat="laptop">Laptop</button>
+                <button class="filter-btn" data-cat="phone">Điện thoại</button>
+                <button class="filter-btn" data-cat="audio">Tai nghe</button>
+            </div>
+        </div>
+
+        <div id="product-grid" class="product-grid">
+            <!-- Render động bằng app.js hoặc template tĩnh -->
+            <div class="card" data-id="1">
+                <div class="badge">Hot</div>
+                <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500" alt="MacBook Pro M3">
+                <div class="card-body">
+                    <span class="category">Laptop</span>
+                    <h3 class="card-title">MacBook Pro 16 M3 Max</h3>
+                    <p class="price">79.990.000 đ</p>
+                    <p class="desc">Chip M3 Max 16-core CPU, 40-core GPU, 36GB RAM, 1TB SSD.</p>
+                    <div class="card-actions">
+                        <a href="product_detail.html?id=1" class="btn-detail">Xem chi tiết & Đánh giá</a>
+                        <button class="btn-add-cart" onclick="addToCart(1, 'MacBook Pro 16 M3 Max', 79990000)">Thêm giỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-id="2">
+                <div class="badge">Bán chạy</div>
+                <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500" alt="iPhone 15 Pro Max">
+                <div class="card-body">
+                    <span class="category">Điện thoại</span>
+                    <h3 class="card-title">iPhone 15 Pro Max 256GB</h3>
+                    <p class="price">29.490.000 đ</p>
+                    <p class="desc">Khung Titan chuẩn hàng không vũ trụ, chip A17 Pro cực mạnh.</p>
+                    <div class="card-actions">
+                        <a href="product_detail.html?id=2" class="btn-detail">Xem chi tiết & Đánh giá</a>
+                        <button class="btn-add-cart" onclick="addToCart(2, 'iPhone 15 Pro Max 256GB', 29490000)">Thêm giỏ</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-id="3">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" alt="Sony WH-1000XM5">
+                <div class="card-body">
+                    <span class="category">Tai nghe</span>
+                    <h3 class="card-title">Sony WH-1000XM5 Wireless</h3>
+                    <p class="price">6.990.000 đ</p>
+                    <p class="desc">Khử tiếng ồn đỉnh cao, âm thanh Hi-Res chất lượng studio.</p>
+                    <div class="card-actions">
+                        <a href="product_detail.html?id=3" class="btn-detail">Xem chi tiết & Đánh giá</a>
+                        <button class="btn-add-cart" onclick="addToCart(3, 'Sony WH-1000XM5 Wireless', 6990000)">Thêm giỏ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>© 2026 VulnShop TMĐT - BTL An toàn thông tin (Nhóm OWASP Top 10).</p>
+            <p>Module phát triển bởi Thành viên 2 (Frontend & XSS Security Specialist).</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

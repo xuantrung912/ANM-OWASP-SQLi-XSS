@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập Tài Khoản - VulnShop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="container nav-flex">
+                <a href="index.html" class="logo">🛒 <span>VulnShop</span></a>
+                <a href="index.html" class="btn-secondary">Quay lại Trang Chủ</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container main-container" style="max-width: 480px; margin-top: 40px;">
+        <div class="auth-card">
+            <h2>Đăng Nhập Khách Hàng / Quản Trị</h2>
+            <p class="subtitle">Truy cập tài khoản để quản lý đơn hàng và nhận xét sản phẩm</p>
+
+            <form id="login-form" action="/login" method="POST">
+                <div class="form-group">
+                    <label for="username">Tên đăng nhập (Username):</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="admin hoặc nguyenvana" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mật khẩu (Password):</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">Đăng Nhập</button>
+            </form>
+
+            <div class="demo-hints">
+                <h4>🔑 Tài khoản thử nghiệm:</h4>
+                <p>Quản trị viên: <code>admin</code> / <code>Admin@123</code></p>
+                <p>Khách hàng: <code>nguyenvana</code> / <code>User@123</code></p>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

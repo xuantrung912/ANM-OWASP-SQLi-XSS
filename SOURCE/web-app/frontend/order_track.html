@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu Vận Đơn - VulnShop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="container nav-flex">
+                <a href="index.html" class="logo">🛒 <span>VulnShop</span></a>
+                <a href="index.html" class="btn-secondary">Trang Chủ</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container main-container" style="max-width: 650px; margin-top: 30px;">
+        <div class="auth-card">
+            <h2>Tra Cứu Đơn Hàng & Vận Đơn</h2>
+            <p class="subtitle">Nhập mã vận đơn để theo dõi hành trình chuyển phát nhanh</p>
+
+            <form id="track-form" action="/order-track" method="GET" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="track-code" name="code" class="form-control" placeholder="Mã đơn: ORD101 hoặc ORD202" required>
+                <button type="submit" class="btn-primary" style="white-space: nowrap; width: auto; padding: 0 20px;">Tra Cứu</button>
+            </form>
+
+            <div class="dom-message-box">
+                <h4>🔔 Trạng thái Client-side (DOM Sink: location.hash):</h4>
+                <div id="dom-status-msg" style="padding: 10px; background: #e2e8f0; border-radius: 6px; font-style: italic;">
+                    Chưa có tham số hash.
+                </div>
+            </div>
+
+            <div class="demo-hints" style="margin-top: 20px;">
+                <h4>💡 Thử nghiệm DOM XSS (CWE-79):</h4>
+                <p>Nối vào sau URL thanh địa chỉ trình duyệt: <code>#&lt;img src=x onerror=alert('DOM_XSS_Success')&gt;</code> rồi nhấn Enter.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

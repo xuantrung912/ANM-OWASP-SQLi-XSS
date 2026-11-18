@@ -9,6 +9,10 @@ services:
       - DB_USER=app_user
       - DB_PASSWORD=AppPass123!
       - DB_NAME=shop_db
+    volumes:
+      - ./SOURCE/web-app/frontend:/app/frontend:ro
+      - ./SOURCE/web-app/secure:/app/secure:ro
+      - ./SOURCE/web-app/vulnerable:/app/vulnerable:ro
     depends_on:
       - db
   db:
@@ -20,3 +24,7 @@ services:
       - "3307:3306"
     volumes:
       - ./SOURCE/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+  cookie-stealer:
+    build: ./SOURCE/exploits/cookie_stealer
+    ports:
+      - "8888:8888"
