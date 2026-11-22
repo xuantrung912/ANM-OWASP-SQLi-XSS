@@ -41,11 +41,22 @@ CREATE TABLE credit_cards (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Dữ liệu mẫu (mật khẩu thật sẽ băm bằng bcrypt khi viết route /register hoặc seed script)
+-- Bảng đánh giá sản phẩm (Bề mặt kiểm thử Stored XSS do TV2 phụ trách)
+CREATE TABLE IF NOT EXISTS reviews (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT NOT NULL,
+  author VARCHAR(100) NOT NULL,
+  rating INT DEFAULT 5,
+  comment TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+-- Dữ liệu mẫu (mật khẩu thật được băm chuẩn bcrypt: admin -> Admin@123, alice/bob -> User@123)
 INSERT INTO users (username, password_hash, is_admin) VALUES
-('admin', '$2b$10$511S4FPi5JfnnWuDbj7XnejfwLARjhh8p3LqvrNEPm0NEsVRrQ/oO', 1),
-('alice', '$2b$10$511S4FPi5JfnnWuDbj7XnejfwLARjhh8p3LqvrNEPm0NEsVRrQ/oO', 0),
-('bob', '$2b$10$511S4FPi5JfnnWuDbj7XnejfwLARjhh8p3LqvrNEPm0NEsVRrQ/oO', 0);
+('admin', '$2b$10$9bkAoPg5s73mxSs760BdA.WHd9wSWG.f3hHEsnSe9pvarHG1CAbh.', 1),
+('alice', '$2b$10$9bkAoPg5s73mxSs760BdA.1CusAnKw0RliIYTQXH4SdAZk.oLnIa2', 0),
+('bob', '$2b$10$9bkAoPg5s73mxSs760BdA.1CusAnKw0RliIYTQXH4SdAZk.oLnIa2', 0);
 
 INSERT INTO products (name, description, price) VALUES
 ('Ao thun', 'Ao cotton basic', 150000),
@@ -70,6 +81,11 @@ INSERT INTO orders (user_id, total) VALUES
 INSERT INTO order_items (order_id, product_id, quantity) VALUES
 (1, 1, 2),
 (2, 2, 1);
+
+INSERT INTO reviews (product_id, author, rating, comment) VALUES
+(1, 'Tran Dinh Bao', 5, 'Ao thun basic mac rat thoang mat, chat cotton xin!'),
+(1, 'Le Hoang Yen', 4, 'Chat lieu dep, dong goi can than, giao hang nhanh.'),
+(2, 'Nguyen Van A', 5, 'Giay sneaker di cuc em chan va nhe nhang.');
 -- User riêng cho ứng dụng ở bản secure, quyền hạn chế (không có quyền DROP, GRANT...)
 CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY 'AppPass123!';
 GRANT SELECT, INSERT, UPDATE ON shop_db.* TO 'app_user'@'%';

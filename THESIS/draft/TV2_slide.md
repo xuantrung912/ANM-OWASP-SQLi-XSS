@@ -60,17 +60,17 @@
 - **Tiêu đề (Cỡ 32):** Demo 3: Đánh Cắp Cookie Admin & Giả Mạo Phiên
 - **Nội dung chính (Cỡ 26, tối đa 5 dòng):**
   1. Payload Stored XSS âm thầm đọc `document.cookie` và gửi về Logger cổng 8888.
-  2. Quản trị viên truy cập trang `/admin`, mã độc kích hoạt ngầm trong phiên của Admin.
-  3. Máy chủ Attacker nhận được Session ID của Admin tại tab `/attacker-logs`.
-  4. Kẻ tấn công chạy script giả mạo phiên, đột nhập trang Quản trị thành công không cần mật khẩu.
+  2. Quản trị viên đăng nhập và truy cập trang `/admin`, mã độc kích hoạt ngầm trong phiên của Admin.
+  3. Máy chủ Attacker nhận được Session ID của Admin tại tab `/attacker-logs` hoặc cổng 8888.
+  4. Kẻ tấn công chạy script hijack_session.py, đột nhập trang Quản trị thành công không cần mật khẩu.
 
 ---
 
 ### SLIDE 26: DEMO DOM-BASED XSS QUA THAM SỐ URL HASH
-- **Tiêu đề (Cỡ 32):** Demo 4: Khai Thác DOM-based XSS (/order-track)
+- **Tiêu đề (Cỡ 32):** Demo 4: Khai Thác DOM-based XSS (/order_track.html)
 - **Nội dung chính (Cỡ 26, tối đa 5 dòng):**
   1. Kẻ tấn công lợi dụng Source Client-side: `window.location.hash`.
-  2. Chèn payload qua URL: `/order-track#<img src=x onerror=alert('DOM_XSS')>`.
+  2. Chèn payload qua URL: `/order_track.html#<img src=x onerror=alert('DOM_XSS')>`.
   3. Script frontend lấy hash và gán thẳng vào DOM Sink nguy hiểm `innerHTML`.
   4. Mã độc chạy trực tiếp trên trình duyệt mà không hề gửi lên Web Server hay WAF.
 
@@ -79,10 +79,10 @@
 ### SLIDE 27: GIẢI PHÁP PHÒNG THỦ TOÀN DIỆN TẦNG ỨNG DỤNG
 - **Tiêu đề (Cỡ 32):** Giải Pháp Phòng Thủ XSS Phía Ứng Dụng
 - **Nội dung chính (Cỡ 26, tối đa 5 dòng):**
-  1. **Mã hóa đầu ra:** Dùng `html.escape()` chuyển `<script>` thành text thô `&lt;script&gt;`.
+  1. **Mã hóa đầu ra:** Áp dụng Context-aware Output Encoding chuyển `<script>` thành văn bản an toàn.
   2. **An toàn DOM:** Thay thế toàn bộ `innerHTML` bằng thuộc tính an toàn `textContent`.
   3. **Làm sạch HTML:** Tích hợp thư viện `DOMPurify` loại bỏ thẻ và sự kiện độc hại.
-  4. **Bảo vệ Cookie:** Bật cờ **HttpOnly** chặn đứng 100% nguy cơ cướp phiên qua XSS.
+  4. **Bảo vệ Cookie:** Bật cờ **HttpOnly** trong Express Session chặn đứng 100% cướp phiên.
 
 ---
 

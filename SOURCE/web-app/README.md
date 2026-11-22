@@ -12,7 +12,7 @@ Dự án Bài tập lớn môn An ninh mạng: Khai thác và khắc phục lỗ
 ```text
 SOURCE/web-app/
 ├── backend/                  # [TV1] Node.js Express API & kết nối CSDL MySQL
-│   ├── routes/               # Routes xác thực (/api/auth) và sản phẩm (/api/products)
+│   ├── routes/               # Routes xác thực (/api/auth), sản phẩm (/api/products), bình luận (/api/reviews), vận đơn (/api/orders)
 │   ├── db.js                 # Pool kết nối MySQL
 │   ├── server.js             # Entrypoint chính (cổng 3000)
 │   ├── Dockerfile            # Container Node.js

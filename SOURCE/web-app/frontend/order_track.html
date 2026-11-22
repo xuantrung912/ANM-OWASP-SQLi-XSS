@@ -21,8 +21,8 @@
             <h2>Tra Cứu Đơn Hàng & Vận Đơn</h2>
             <p class="subtitle">Nhập mã vận đơn để theo dõi hành trình chuyển phát nhanh</p>
 
-            <form id="track-form" action="/order-track" method="GET" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="track-code" name="code" class="form-control" placeholder="Mã đơn: ORD101 hoặc ORD202" required>
+            <form id="track-form" action="/api/orders/track" method="GET" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="track-code" name="code" class="form-control" placeholder="Mã đơn: 1 hoặc 2 (Thử SQLi: 1' AND 1=1 --)" required>
                 <button type="submit" class="btn-primary" style="white-space: nowrap; width: auto; padding: 0 20px;">Tra Cứu</button>
             </form>
 

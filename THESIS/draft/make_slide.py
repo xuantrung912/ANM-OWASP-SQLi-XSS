@@ -85,7 +85,7 @@ slides_data = [
         'num': 'SLIDE 27',
         'title': 'Giải Pháp Phòng Thủ XSS Phía Ứng Dụng',
         'bullets': [
-            'Mã hóa đầu ra: Dùng html.escape() biến <script> thành văn bản thô &lt;script&gt;.',
+            'Mã hóa đầu ra: Áp dụng Output Encoding biến <script> thành văn bản an toàn.',
             'An toàn DOM: Thay thế toàn bộ innerHTML bằng thuộc tính an toàn textContent.',
             'Làm sạch HTML: Tích hợp thư viện DOMPurify loại bỏ thẻ và sự kiện độc hại.',
             'Bảo vệ Cookie: Bật cờ HttpOnly chặn đứng 100% nguy cơ cướp phiên qua XSS.'

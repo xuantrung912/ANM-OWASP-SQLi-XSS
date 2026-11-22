@@ -3,7 +3,7 @@ BỘ NHẬT KÝ KIỂM THỬ LẠI LỖ HỔNG XSS (XSS RE-TESTING LOG REPORT)
 Dự án: VulnShop E-Commerce Web Application (OWASP Top 10 BTL)
 Người thực hiện: Thành viên 2 (Frontend & XSS Security Specialist)
 Ngày kiểm thử: 06/11/2026
-Môi trường: Python WSGI Runtime / Isolated Lab Network
+Môi trường: Node.js v20 (Express) / MySQL 8.0 / Docker / Port 3000
 Trạng thái kiểm thử: Đối chiếu trực tiếp giữa [VULNERABLE MODE] và [SECURE MODE]
 ================================================================================
 
@@ -13,7 +13,7 @@ Trạng thái kiểm thử: Đối chiếu trực tiếp giữa [VULNERABLE MODE
 - Mục tiêu: Endpoint tìm kiếm sản phẩm
 - Yêu cầu HTTP:
   GET /search?q=%3Cscript%3Ealert('Reflected_XSS_Test')%3C%2Fscript%3E HTTP/1.1
-  Host: localhost:5000
+  Host: localhost:3000
   User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
 
 * TRẠNG THÁI [VULNERABLE MODE]:
@@ -34,7 +34,7 @@ Trạng thái kiểm thử: Đối chiếu trực tiếp giữa [VULNERABLE MODE
     <div class="hero-box">
         <h1>Kết Quả Tìm Kiếm Cho: &lt;script&gt;alert(&#x27;Reflected_XSS_Test&#x27;)&lt;/script&gt;</h1>
     </div>
-  - Đánh giá: Hàm html.escape() đã mã hóa toàn bộ ký tự '<', '>', '\'' thành các thực thể an toàn &lt;, &gt;, &#x27;. Trình duyệt hiển thị chuỗi ký tự dạng văn bản thô, không thể tạo nút DOM <script>.
+  - Đánh giá: Cơ chế Context-aware HTML Entity Encoding đã mã hóa toàn bộ ký tự '<', '>', '\'', '"' thành các thực thể an toàn &lt;, &gt;, &#x27;, &quot;. Trình duyệt hiển thị chuỗi ký tự dạng văn bản thô, không thể tạo nút DOM <script>.
   - KẾT QUẢ: VÁ LỖ HỔNG THÀNH CÔNG (SECURE - NO EXECUTION).
 
 --------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ Trạng thái kiểm thử: Đối chiếu trực tiếp giữa [VULNERABLE MODE
   - Nhật ký ghi nhận tại Attacker Logger (Cổng 8888):
     [2026-11-06 21:15:32] IP: 127.0.0.1
        - Cookie nhận được : session_id=e937d40cb972412fa281
-       - Nguồn rò rỉ (Ref) : http://localhost:5000/admin
+       - Nguồn rò rỉ (Ref) : http://localhost:3000/admin
   - KẾT QUẢ: ĐÁNH CẮP PHIÊN THÀNH CÔNG (SESSION COMPROMISED).
 
 * TRẠNG THÁI [SECURE MODE]:
@@ -93,7 +93,7 @@ Trạng thái kiểm thử: Đối chiếu trực tiếp giữa [VULNERABLE MODE
 --------------------------------------------------------------------------------
 3.1. Thử nghiệm Payload D-01: #<img src=x onerror=alert('DOM_XSS_Success')>
 - Mục tiêu: Tham số Fragment Identifier (URL Hash) tại trang tra cứu đơn hàng
-- Yêu cầu Client: http://localhost:5000/order-track#<img src=x onerror=alert('DOM_XSS_Success')>
+- Yêu cầu Client: http://localhost:3000/order_track.html#<img src=x onerror=alert('DOM_XSS_Success')>
 - HTTP Server Log: Hoàn toàn không nhận được chuỗi sau dấu # (Tuân thủ chuẩn RFC 3986).
 
 * TRẠNG THÁI [VULNERABLE MODE]:
@@ -114,8 +114,8 @@ Trạng thái kiểm thử: Đối chiếu trực tiếp giữa [VULNERABLE MODE
 ================================================================================
 | Mã Lỗ Hổng | Tên Kịch Bản | Trạng Thái Trước Vá (Vulnerable) | Trạng Thái Sau Vá (Secure) | Cơ Chế Phòng Thủ Đạt Hiệu Quả |
 | :---: | :--- | :---: | :---: | :--- |
-| **XSS-01** | Reflected XSS (/search) | Thực thi JavaScript Popup Alert | Hiển thị chuỗi Text thô an toàn | html.escape() & CSP Header |
-| **XSS-02** | Stored XSS (/product & /admin) | Thực thi ngầm trên Admin browser | Hiển thị chuỗi Text thô an toàn | html.escape() & DOMPurify |
+| **XSS-01** | Reflected XSS (/search) | Thực thi JavaScript Popup Alert | Hiển thị chuỗi Text thô an toàn | Context-aware HTML Encoding & CSP |
+| **XSS-02** | Stored XSS (/product & /admin) | Thực thi ngầm trên Admin browser | Hiển thị chuỗi Text thô an toàn | DOMPurify & textContent |
 | **XSS-03** | Đánh cắp Cookie Phiên | Cookie bị bắn về cổng 8888 | document.cookie bị vô hiệu hóa | Cờ HttpOnly=True & SameSite=Lax |
 | **XSS-04** | DOM-based XSS (/order-track) | Thực thi qua innerHTML sink | Hiển thị chuỗi Text thô an toàn | Thay thế bằng textContent Sink |
 | **XSS-05** | DOM Defacement | Giao diện bị biến dạng, hạ giá | Giao diện nguyên vẹn 100% | DOM Integrity Protection |
