@@ -1,0 +1,94 @@
+# Chay: docker compose up -d --build   (tu thu muc SETUP/)
+name: btl-atttt-lab
+
+services:
+  proxy:            # Vung Reverse Proxy: security headers + CSP
+    image: nginx:1.27-alpine
+    ports: ["127.0.0.1:${PUBLIC_PORT:-8080}:80"]
+    environment:
+      CSP_ENABLED: ${CSP_ENABLED:-0}
+    volumes:
+      - ./waf/nginx.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./waf/security_headers.conf:/etc/nginx/security_headers.conf:ro
+    networks: [edge_net, app_net]
+    depends_on: [waf]
+
+  waf:              # ModSecurity + OWASP CRS (Off / DetectionOnly / On)
+    image: owasp/modsecurity-crs:nginx
+    environment:
+      BACKEND: http://webapp:3000
+      PORT: 8080
+      MODSEC_RULE_ENGINE: ${WAF_ENGINE:-Off}
+      BLOCKING_PARANOIA: ${PARANOIA:-1}
+      ANOMALY_INBOUND: 5
+    volumes:
+      # Ngoai le (false positive) phai nam TRUOC CRS thi ctl:ruleRemoveById moi co tac dung
+      - ./waf/modsecurity-exclusions.conf:/etc/modsecurity.d/owasp-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:ro
+    networks: [app_net, web_net]
+    depends_on: [webapp]
+
+  webapp:           # Backend cua TV1 (Node/Express) - khong doi code
+    build:
+      context: ../SOURCE/web-app/backend
+    environment:
+      MODE: ${MODE:-vulnerable}
+      PORT: 3000
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASS}
+    volumes:
+      - ../SOURCE/web-app/frontend:/app/frontend:ro
+      - ../SOURCE/web-app/secure:/app/secure:ro
+      - ../SOURCE/web-app/vulnerable:/app/vulnerable:ro
+    networks: [web_net, db_net]
+    depends_on:
+      db:
+        condition: service_healthy   # cho MySQL san sang that su moi khoi dong webapp
+    restart: on-failure
+
+  db:               # Vung Database - KHONG mo cong ra host
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    volumes:
+      - ../SOURCE/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - dbdata:/var/lib/mysql
+    networks: [db_net]
+    healthcheck:
+      # -h 127.0.0.1 (TCP): server tam luc khoi tao khong mo TCP nen khong bao "healthy" som
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    # Debug MySQL (KHONG dung khi demo): docker compose exec db mysql -uroot -p${DB_ROOT_PASS} ${DB_NAME}
+
+  attacker:         # Cong cu tan cong, chi vao duoc qua proxy
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        RUN apt-get update && apt-get install -y --no-install-recommends curl git \
+         && rm -rf /var/lib/apt/lists/* && pip install --no-cache-dir sqlmap
+        WORKDIR /work
+    command: sleep infinity
+    volumes: ["../SOURCE/exploits:/work/exploits:ro"]
+    networks: [edge_net]
+
+  catcher:          # cookie-stealer that cua TV2 (stealer.py, cong 8888)
+    build: ../SOURCE/exploits/cookie_stealer
+    ports: ["127.0.0.1:${CATCHER_PORT:-8888}:8888"]
+    networks: [edge_net]
+
+networks:
+  edge_net: {}
+  app_net: {}
+  web_net: {}
+  db_net: { internal: true }   # CSDL khong co duong ra Internet; khong mo cong ra host
+
+volumes:
+  dbdata: {}
